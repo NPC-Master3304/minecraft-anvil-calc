@@ -45,7 +45,7 @@ const getEnchantmentDisplayName = (enchantment_name: string) => {
 const itemNameToSpecificationMap = (itemSpecifications as Array<ItemSpecification>).reduce((result, item) => {
   result.set(item.name, item);
   return result;
-}, new Map<string, ItemSpecification>);
+}, new Map<string, ItemSpecification>());
 
 export {
   numToNumeral,

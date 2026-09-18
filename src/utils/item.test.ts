@@ -18,7 +18,7 @@ const createEnchantmentByName = (enchantment_name: string): Enchantment => {
     (enchantment) => enchantment.name === enchantment_name
   )
   if (!enchantment_specification) {
-    throw 'Could not find enchantment specification by name';
+    throw new Error('Could not find enchantment specification by name');
   }
   return {
     name: enchantment_specification.name,
@@ -32,7 +32,7 @@ const getEnchantmentSpecificationByName = (enchantment_name: string): Enchantmen
     (enchantment) => enchantment.name === enchantment_name
   )
   if (!enchantment_specification) {
-    throw 'Could not find enchantment specification by name';
+    throw new Error('Could not find enchantment specification by name');
   }
   return enchantment_specification;
 }

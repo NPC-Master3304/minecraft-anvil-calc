@@ -112,7 +112,7 @@ const mergeEnchantments = (
   return sacrificeEnchantments.reduce(
     (mergeResults, sacrificeEnchantment) => {
       if (!sacrificeEnchantment.specification) {
-        throw 'Error: no specification for Enchantment.';
+        throw new Error('Error: no specification for Enchantment.');
       }
 
       const multiplier = getMultiplier(sacrificeItem, sacrificeEnchantment.specification, settings.java_edition);

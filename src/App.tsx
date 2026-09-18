@@ -159,7 +159,7 @@ class App extends React.Component<Record<string, never>, AppState> {
   }
 
   getInitialState(): AppState {
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(window.location.search);
     const newState: AppState = {
       items_to_combine: JSON.parse(params.get("items") ?? "null") ?? [],
       results: {
@@ -183,7 +183,7 @@ class App extends React.Component<Record<string, never>, AppState> {
   }
 
   setUrlState(items_to_combine: Array<ItemData>, settings?: Settings) {
-    const url = new URL(location.href);
+    const url = new URL(window.location.href);
     const params = new URLSearchParams();
     params.append("items", JSON.stringify(items_to_combine));
     if (settings) {
@@ -191,7 +191,7 @@ class App extends React.Component<Record<string, never>, AppState> {
       params.append("settings_allow_multiple_armor_enhancements", settings.allow_multiple_armor_enhancements.toString());
     }
     url.search = params.toString();
-    history.replaceState(null, '', url);
+    window.history.replaceState(null, '', url);
   }
 
   getAddOptions() {
@@ -260,7 +260,7 @@ class App extends React.Component<Record<string, never>, AppState> {
 
   changeItemToAdd(e: SelectValue) {
     if (!e?.value) {
-      throw 'Error: no item to add';
+      throw new Error('Error: no item to add');
     }
     this.setState({
       itemToAdd: e.value,
@@ -330,7 +330,7 @@ class App extends React.Component<Record<string, never>, AppState> {
       (item) => item.index === item_index
     );
     if (!modifiedItem) {
-      throw 'Error: changeItemPenalty could not find modified item';
+      throw new Error('Error: changeItemPenalty could not find modified item');
     }
     modifiedItem.penalty = e.target.valueAsNumber;
     new_items_to_combine = [
@@ -347,7 +347,7 @@ class App extends React.Component<Record<string, never>, AppState> {
     );
     const level = enchantmentSpecification?.base_max_level ?? enchantmentSpecification?.max_level
     if (!level) {
-      throw 'Error: could not get max enchantment level.'
+      throw new Error('Error: could not get max enchantment level.')
     }
     return level;
   }
@@ -375,7 +375,7 @@ class App extends React.Component<Record<string, never>, AppState> {
       (item) => item.index === item_index
     );
     if (!new_item) {
-      throw 'Error: could not delete Enchantment.';
+      throw new Error('Error: could not delete Enchantment.');
     }
     new_item.enchantments = new_item.enchantments.filter(
       (filter_enchantment) => filter_enchantment.name !== enchantment.name
@@ -392,13 +392,13 @@ class App extends React.Component<Record<string, never>, AppState> {
       (item) => item.index === item_index
     );
     if (!new_item) {
-      throw 'Error: could not change Enchantment level.';
+      throw new Error('Error: could not change Enchantment level.');
     }
     const new_enchantment = new_item.enchantments.find(
       (find_enchantment) => find_enchantment.name === enchantment.name
     );
     if (!new_enchantment) {
-      throw 'Error: could not change Enchantment level.';
+      throw new Error('Error: could not change Enchantment level.');
     }
     new_enchantment.level = e.target.valueAsNumber;
     this.combineAndSetState(new_items_to_combine);
@@ -413,13 +413,13 @@ class App extends React.Component<Record<string, never>, AppState> {
       (item) => item.index === item_index
     );
     if (!new_item) {
-      throw 'Error: could not check preserve.';
+      throw new Error('Error: could not check preserve.');
     }
     const new_enchantment = new_item.enchantments.find(
       (find_enchantment) => find_enchantment.name === enchantment.name
     );
     if (!new_enchantment) {
-      throw 'Error: could not check preserve.';
+      throw new Error('Error: could not check preserve.');
     }
     new_enchantment.preserve = e.target.checked;
     this.combineAndSetState(new_items_to_combine);

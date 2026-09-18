@@ -1,0 +1,119 @@
+// Dark grey palette, sampled from the Claude web app.
+// There is no light theme and no toggle: index.html pins data-bs-theme="dark",
+// and the :root block below repeats the same values so the page stays dark even
+// if that attribute is ever dropped or the OS asks for a light colour scheme.
+$ac-bg: #151515;
+$ac-surface: #20201f;
+$ac-raised: #2d2d2d;
+$ac-border: #343434;
+$ac-border-strong: #454545;
+$ac-text: #f0efec;
+$ac-muted: #8f8e87;
+$ac-accent: #d9a04a;
+
+// Fed to Bootstrap before the import so the compiled-in colours (button
+// variants especially, which bake hex values rather than reading a variable)
+// come out dark too
+$primary: $ac-accent;
+$body-bg-dark: $ac-bg;
+$body-color-dark: $ac-text;
+$body-secondary-bg-dark: $ac-surface;
+$body-tertiary-bg-dark: $ac-raised;
+$body-emphasis-color-dark: #ffffff;
+$border-color-dark: $ac-border;
+$link-color-dark: $ac-accent;
+$link-hover-color-dark: lighten($ac-accent, 12%);
+
+@import '~bootstrap/scss/bootstrap.scss';
+
+:root,
+[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --bs-body-bg: #{$ac-bg};
+  --bs-body-bg-rgb: #{red($ac-bg)}, #{green($ac-bg)}, #{blue($ac-bg)};
+  --bs-body-color: #{$ac-text};
+  --bs-body-color-rgb: #{red($ac-text)}, #{green($ac-text)}, #{blue($ac-text)};
+  --bs-emphasis-color: #ffffff;
+  --bs-secondary-color: #{$ac-muted};
+  --bs-secondary-bg: #{$ac-surface};
+  --bs-tertiary-bg: #{$ac-raised};
+  --bs-border-color: #{$ac-border};
+  --bs-border-color-translucent: rgba(255, 255, 255, 0.1);
+  --bs-heading-color: #{$ac-text};
+  --bs-link-color: #{$ac-accent};
+  --bs-link-hover-color: #{lighten($ac-accent, 12%)};
+}
+
+body {
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+.github {
+  font-size: 75%;
+  margin-left: 0.5em;
+}
+
+// The enchantment level box is a bare <input>, so it gets no Bootstrap styling
+input[type="number"]:not(.form-control) {
+  width: 4.5rem;
+  padding: 0.1rem 0.35rem;
+  color: var(--bs-body-color);
+  background-color: $ac-surface;
+  border: 1px solid $ac-border;
+  border-radius: 0.25rem;
+
+  &:focus {
+    border-color: $ac-border-strong;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba($ac-accent, 0.25);
+  }
+}
+
+// Bootstrap's saturated badges are hard to read on a dark grey background, so
+// the enchantment, penalty and curse pills become muted chips instead
+.badge {
+  font-weight: 500;
+
+  &.bg-primary {
+    background-color: #253242 !important;
+    color: #a9c7ea;
+  }
+
+  &.bg-warning {
+    background-color: #3a3222 !important;
+    color: #e3c07a;
+  }
+
+  &.bg-danger {
+    background-color: #3d2323 !important;
+    color: #ef9a9a;
+  }
+}
+
+// Table rules at full --bs-border-color strength are heavy over this many rows
+.table {
+  --bs-table-border-color: rgba(255, 255, 255, 0.08);
+
+  th {
+    color: $ac-muted;
+    font-weight: 500;
+  }
+}
+
+// Inputs read better as a raised surface than as a hole the colour of the page
+.form-control,
+.form-select,
+.form-check-input {
+  background-color: $ac-surface;
+
+  &:focus {
+    background-color: $ac-surface;
+    border-color: $ac-border-strong;
+  }
+}
+
+.form-check-input:checked {
+  background-color: $ac-accent;
+  border-color: $ac-accent;
+}

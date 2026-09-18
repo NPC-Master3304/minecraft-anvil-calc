@@ -1,0 +1,47 @@
+[
+	{
+		"name": "spear",
+		"enchantments": [
+			{
+				"name": "sharpness",
+				"level": 5
+			}
+		]
+	},
+	{
+		"name": "book",
+		"enchantments": [
+			{
+				"name": "lunge",
+				"level": 3
+			}
+		]
+	},
+	{
+		"name": "book",
+		"enchantments": [
+			{
+				"name": "looting",
+				"level": 3
+			}
+		]
+	},
+	{
+		"name": "book",
+		"enchantments": [
+			{
+				"name": "unbreaking",
+				"level": 3
+			}
+		]
+	},
+	{
+		"name": "book",
+		"enchantments": [
+			{
+				"name": "mending",
+				"level": 1
+			}
+		]
+	}
+]

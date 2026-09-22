@@ -1,7 +1,7 @@
 import enchantments from "../data/enchantments.json";
-import { levelToExperience } from "../utils/helpers";
+import { addIndexes, levelToExperience } from "../utils/helpers";
 import itemSpecifications from "../data/items.json";
-import { Enchantment, EnchantmentSpecification, ItemData, ItemSpecification, Settings, StepData } from "../models";
+import { Enchantment, EnchantmentSpecification, ItemData, ItemPreset, ItemSpecification, Settings, StepData } from "../models";
 
 // Java Edition can support a different set of items for the same enchantment
 // (e.g., Silk Touch cannot go on Shears, Curse of Vanishing cannot go on a Recovery Compass)
@@ -165,6 +165,65 @@ const mergeEnchantments = (
       return mergeResults;
     },
     { cost: 0, resultingEnchantments: [...targetEnchantments] }
+  );
+};
+
+// Drops what the chosen edition cannot have: Java-only items (e.g., the Spear),
+// Java-only enchantments (e.g., Sweeping Edge), and enchantments that the
+// edition does not allow on that item (e.g., Silk Touch on Shears in Java)
+const filterItemsForEdition = (
+  itemsToCombine: Array<ItemData>,
+  isJavaEdition: boolean
+): Array<ItemData> => {
+  const javaOnlyItems = (itemSpecifications as Array<ItemSpecification>)
+    .filter((item) => item.java_only)
+    .map((item) => item.name);
+  return itemsToCombine
+    .filter((item) => isJavaEdition || !javaOnlyItems.includes(item.name))
+    .map((item) => {
+      const enchantmentsToKeep = getItemData(item)
+        .enchantments.filter(
+          (enchantment) =>
+            item.name === "book" ||
+            (enchantment.specification
+              ? getAppliesTo(enchantment.specification, isJavaEdition).includes(
+                item.name
+              )
+              : false)
+        )
+        .filter(
+          (enchantment) =>
+            isJavaEdition || !enchantment.specification?.java_only
+        )
+        .map((enchantment) => enchantment.name);
+      return {
+        ...item,
+        enchantments: item.enchantments.filter((enchantment) =>
+          enchantmentsToKeep.includes(enchantment.name)
+        ),
+      };
+    });
+};
+
+// A preset loaded in Bedrock Edition loses its Java-only parts, and a book the
+// filter empties (e.g., the sword preset's Sweeping Edge book) is dropped
+// rather than left in the list with nothing on it
+const loadPresetForEdition = (
+  presetItems: Array<ItemPreset>,
+  isJavaEdition: boolean
+): Array<ItemData> => {
+  const loaded = presetItems.map<ItemData>((item, index) => ({
+    ...item,
+    index,
+    penalty: item.penalty ?? 0,
+  }));
+  return addIndexes(
+    filterItemsForEdition(loaded, isJavaEdition).filter(
+      (item) =>
+        item.name !== "book" ||
+        item.enchantments.length > 0 ||
+        loaded[item.index].enchantments.length === 0
+    )
   );
 };
 
@@ -383,6 +442,8 @@ const getDisplayName = (item_name: string) => {
 
 export {
   MAX_ANVIL_COST,
+  filterItemsForEdition,
+  loadPresetForEdition,
   getAppliesTo,
   getEnchantments,
   getItemData,

@@ -43,7 +43,8 @@ interface EnchantmentSpecification {
 
 interface Preset {
     data: Array<ItemPreset>,
-    display_name: string
+    display_name: string,
+    java_only?: boolean,
 }
 
 interface ItemPreset {

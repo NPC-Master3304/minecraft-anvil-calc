@@ -6,12 +6,12 @@ import Item from "./components/item";
 import Step from "./components/step";
 import enchantments from "./data/enchantments.json";
 import items from "./data/items.json";
-import { AnvilResults, CombineItemsError, getAppliesTo, getDisplayName, getItemData, instanceOfCombineItemsError, MAX_ANVIL_COST } from "./utils/item";
+import { AnvilResults, CombineItemsError, filterItemsForEdition, getDisplayName, getItemData, instanceOfCombineItemsError, loadPresetForEdition, MAX_ANVIL_COST } from "./utils/item";
 // import { combineItems } from "./utils/item"; //for debugging
 import { Alert, Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import Select, { SingleValue } from "react-select";
 import Worker from 'worker-loader!./utils/worker';
-import { addIndexes, levelToExperience } from "./utils/helpers";
+import { levelToExperience } from "./utils/helpers";
 import { darkSelectStyles, darkSelectTheme } from "./utils/selectTheme";
 
 
@@ -81,6 +81,7 @@ const presets: { [key: string]: Preset } = {
   spear: {
     data: spear_preset,
     display_name: "Spear (Sharpness, Lunge)",
+    java_only: true,
   },
   bow: {
     data: bow_preset,
@@ -293,9 +294,11 @@ class App extends React.Component<Record<string, never>, AppState> {
   }
 
   getPresetOptions() {
-    return Object.entries(presets).map((entry) => {
-      return { value: entry[0], label: entry[1].display_name };
-    });
+    return Object.entries(presets)
+      .filter((entry) => this.state.settings.java_edition || !entry[1].java_only)
+      .map((entry) => {
+        return { value: entry[0], label: entry[1].display_name };
+      });
   }
 
   changePreset(e: SelectValue) {
@@ -308,12 +311,13 @@ class App extends React.Component<Record<string, never>, AppState> {
 
   setPreset() {
     if (this.state.preset) {
-      const new_items_to_combine = addIndexes(presets[this.state.preset].data).map<ItemData>((item_to_combine) => {
-        return {
-          ...item_to_combine,
-          penalty: item_to_combine.penalty ?? 0
-        };
-      });
+      const preset = presets[this.state.preset];
+      const isJavaEdition = this.state.settings.java_edition;
+      // Still selected from before Java Edition was switched off
+      if (preset.java_only && !isJavaEdition) {
+        return;
+      }
+      const new_items_to_combine = loadPresetForEdition(preset.data, isJavaEdition);
       this.setState({
         nextIndex: new_items_to_combine.length,
       });
@@ -433,30 +437,10 @@ class App extends React.Component<Record<string, never>, AppState> {
       ...this.state.settings,
       java_edition: e.target.checked,
     };
-    const javaOnlyItems = (items as Array<ItemSpecification>)
-      .filter((item) => item.java_only)
-      .map((item) => item.name);
-    const new_items_to_combine = this.state.items_to_combine
-      // Some items only exist in Java Edition (e.g., the Spear)
-      .filter((item) => e.target.checked || !javaOnlyItems.includes(item.name))
-      .map((item) => {
-        const enchantmentsToKeep = getItemData(item).enchantments
-          // Filter according to applies_to overrides
-          .filter(
-            (enchantment) =>
-              item.name === "book" ||
-              (enchantment.specification
-                ? getAppliesTo(
-                  enchantment.specification,
-                  new_settings.java_edition
-                ).includes(item.name)
-                : false)
-          )
-          // Filter when an enchantment is Java exclusive
-          .filter((enchantment) => new_settings.java_edition || !enchantment.specification?.java_only)
-          .map((enchantment) => enchantment.name);
-        return { ...item, enchantments: item.enchantments.filter((enchantment) => enchantmentsToKeep.includes(enchantment.name)) };
-      });
+    const new_items_to_combine = filterItemsForEdition(
+      this.state.items_to_combine,
+      new_settings.java_edition
+    );
     this.setState({
       settings: new_settings,
     });

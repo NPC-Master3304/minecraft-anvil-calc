@@ -9,7 +9,10 @@ import {
   instanceOfAnvilError,
   instanceOfCombineItemsError,
   MAX_ANVIL_COST,
+  loadPresetForEdition,
 } from "./item";
+import sword_sharpness_preset from "../data/sword_sharpness_preset.json";
+import spear_preset from "../data/spear_preset.json";
 import enchantments from "../data/enchantments.json";
 import { Enchantment, EnchantmentSpecification, ItemData, Settings } from "../models";
 
@@ -618,5 +621,53 @@ it("test too expensive limit", () => {
   if (!instanceOfAnvilError(anvil_results)) {
     expect(anvil_results.cost).toEqual(MAX_ANVIL_COST);
     expect(anvil_results.steps[0].tooExpensive).toEqual(true);
+  }
+});
+
+it("test sword preset sweeping edge by edition", () => {
+  const enchantmentNames = (items: ItemData[]) =>
+    items.flatMap((item) => item.enchantments.map((enchantment) => enchantment.name));
+
+  // Java Edition keeps the Sweeping Edge III book
+  const java = loadPresetForEdition(sword_sharpness_preset, true);
+  expect(java).toHaveLength(sword_sharpness_preset.length);
+  expect(enchantmentNames(java)).toContain("sweeping_edge");
+
+  // Bedrock Edition has no Sweeping Edge, so the book it came on is dropped
+  // rather than left in the list empty, and the rest are re-indexed
+  const bedrock = loadPresetForEdition(sword_sharpness_preset, false);
+  expect(bedrock).toHaveLength(sword_sharpness_preset.length - 1);
+  expect(enchantmentNames(bedrock)).not.toContain("sweeping_edge");
+  expect(bedrock.every((item) => item.name !== "book" || item.enchantments.length > 0)).toBeTruthy();
+  expect(bedrock.map((item) => item.index)).toEqual(bedrock.map((_, index) => index));
+});
+
+it("test java-only items dropped in bedrock", () => {
+  // The spear is Java-only; its books survive but Lunge (Java-only) does not
+  const bedrock = loadPresetForEdition(spear_preset, false);
+  expect(bedrock.some((item) => item.name === "spear")).toBeFalsy();
+  expect(
+    bedrock.some((item) => item.enchantments.some((enchantment) => enchantment.name === "lunge"))
+  ).toBeFalsy();
+
+  const java = loadPresetForEdition(spear_preset, true);
+  expect(java[0].name).toEqual("spear");
+  expect(java).toHaveLength(spear_preset.length);
+});
+
+it("test sweeping edge anvil cost", () => {
+  const settings: Settings = { java_edition: true, allow_multiple_armor_enhancements: false };
+  const test_sword: ItemData = { name: "sword", enchantments: [], index: 0, penalty: 0 };
+  const test_book = getItemData({
+    name: "book",
+    enchantments: [createEnchantmentByName("sweeping_edge")],
+    index: 1,
+    penalty: 0,
+  });
+  // sweeping_edge.json anvil_cost 4, halved for a book: 2 x III
+  const anvil_results = anvil(test_sword, test_book, settings);
+  expect(instanceOfAnvilError(anvil_results)).toBeFalsy();
+  if (!instanceOfAnvilError(anvil_results)) {
+    expect(anvil_results.cost).toEqual(6);
   }
 });

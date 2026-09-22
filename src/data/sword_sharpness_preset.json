@@ -34,6 +34,15 @@
     "name": "book",
     "enchantments": [
       {
+        "name": "sweeping_edge",
+        "level": 3
+      }
+    ]
+  },
+  {
+    "name": "book",
+    "enchantments": [
+      {
         "name": "knockback",
         "level": 2
       }
